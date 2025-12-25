@@ -4,7 +4,7 @@ A Java 21 console application where autonomous AI agents play the social deducti
 
 ## Overview
 
-The concept has been shamelessly stolen from Turing Games channel on YouTube (https://www.youtube.com/@turing_games, https://youtu.be/JhBtg-lyKdo). This project implements a fully automated Mafia game where AI agents (Large Language Models) take on roles like Mafia, Sheriff, Doctor, and Villagers. The game runs autonomously with no human intervention, featuring:
+The concept has been shamelessly stolen from Turing Games channel on YouTube (https://www.youtube.com/@turing_games, https://youtu.be/JhBtg-lyKdo). This project implements a fully automated Mafia game where LLMs take on roles like Mafia, Sheriff, Doctor, and Villagers. The game runs autonomously with no human intervention, featuring:
 
 - **AI players** with distinct roles and goals
 - **Night phase** with Mafia consensus, Sheriff investigations, and Doctor protection

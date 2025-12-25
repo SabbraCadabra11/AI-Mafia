@@ -156,7 +156,7 @@ public class GameState {
      */
     public void addToPublicLog(String event) {
         if (event != null && !event.isBlank()) {
-            String formattedEvent = String.format("[Day %d - %s] %s", 
+            String formattedEvent = String.format("[Day %d - %s] %s",
                     dayNumber, currentPhase.getDisplayName(), event);
             publicLog.add(formattedEvent);
         }
@@ -226,7 +226,7 @@ public class GameState {
 
     @Override
     public String toString() {
-        return String.format("GameState{day=%d, phase=%s, alive=%d/%d}", 
+        return String.format("GameState{day=%d, phase=%s, alive=%d/%d}",
                 dayNumber, currentPhase, getAliveCount(), players.size());
     }
 }

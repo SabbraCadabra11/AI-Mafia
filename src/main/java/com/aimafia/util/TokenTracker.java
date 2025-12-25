@@ -12,14 +12,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class TokenTracker {
     private static final Logger logger = LoggerFactory.getLogger(TokenTracker.class);
-    
+
     private static volatile TokenTracker instance;
-    
+
     // Approximate costs per 1000 tokens (in USD cents)
     // These should be updated based on actual model pricing
-    private static final double INPUT_COST_PER_1K = 0.5;  // $0.005 per 1K input tokens
+    private static final double INPUT_COST_PER_1K = 0.5; // $0.005 per 1K input tokens
     private static final double OUTPUT_COST_PER_1K = 1.5; // $0.015 per 1K output tokens
-    
+
     private final AtomicLong totalInputTokens;
     private final AtomicLong totalOutputTokens;
     private final AtomicInteger requestCount;
@@ -63,8 +63,8 @@ public final class TokenTracker {
         totalInputTokens.addAndGet(inputTokens);
         totalOutputTokens.addAndGet(outputTokens);
         requestCount.incrementAndGet();
-        
-        logger.debug("Token usage: input={}, output={}, total requests={}", 
+
+        logger.debug("Token usage: input={}, output={}, total requests={}",
                 inputTokens, outputTokens, requestCount.get());
     }
 

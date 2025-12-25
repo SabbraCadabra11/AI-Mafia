@@ -31,9 +31,15 @@ public final class GameConfig {
     private final int maxDiscussionRounds;
     private final int nominationThresholdPercent;
 
+    // Fixed role assignments (optional)
+    private final List<Integer> fixedMafiaPlayers;
+    private final Integer fixedDoctorPlayer;
+    private final Integer fixedSheriffPlayer;
+
     // Retry settings
     private final int maxRetries;
     private final long retryDelayMs;
+    private final int maxTokens;
 
     private GameConfig() {
         Properties props = loadProperties();
@@ -56,9 +62,15 @@ public final class GameConfig {
         // Load per-player models
         this.playerModels = loadPlayerModels(props);
 
+        // Load fixed role assignments (optional)
+        this.fixedMafiaPlayers = parsePlayerList(props.getProperty("game.mafia.players", ""));
+        this.fixedDoctorPlayer = parsePlayerNumber(props.getProperty("game.doctor.player", ""));
+        this.fixedSheriffPlayer = parsePlayerNumber(props.getProperty("game.sheriff.player", ""));
+
         // Retry settings
         this.maxRetries = Integer.parseInt(props.getProperty("api.max.retries", "3"));
         this.retryDelayMs = Long.parseLong(props.getProperty("api.retry.delay.ms", "1000"));
+        this.maxTokens = Integer.parseInt(props.getProperty("api.max.tokens", "999999"));
 
         logger.info("GameConfig loaded: players={}, mafia={}, models configured={}",
                 playerCount, mafiaCount, playerModels.size());
@@ -82,6 +94,39 @@ public final class GameConfig {
         }
 
         return Collections.unmodifiableMap(models);
+    }
+
+    /**
+     * Parses a comma-separated list of player numbers.
+     */
+    private List<Integer> parsePlayerList(String value) {
+        if (value == null || value.isBlank()) {
+            return Collections.emptyList();
+        }
+        List<Integer> result = new ArrayList<>();
+        for (String part : value.split(",")) {
+            try {
+                result.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException e) {
+                logger.warn("Invalid player number in list: {}", part);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Parses a single player number.
+     */
+    private Integer parsePlayerNumber(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            logger.warn("Invalid player number: {}", value);
+            return null;
+        }
     }
 
     /**
@@ -208,6 +253,34 @@ public final class GameConfig {
 
     public long getRetryDelayMs() {
         return retryDelayMs;
+    }
+
+    public int getMaxTokens() {
+        return maxTokens;
+    }
+
+    /**
+     * Gets the list of player numbers that should be Mafia.
+     * Empty list means random assignment.
+     */
+    public List<Integer> getFixedMafiaPlayers() {
+        return fixedMafiaPlayers;
+    }
+
+    /**
+     * Gets the player number that should be Doctor.
+     * Null means random assignment.
+     */
+    public Integer getFixedDoctorPlayer() {
+        return fixedDoctorPlayer;
+    }
+
+    /**
+     * Gets the player number that should be Sheriff.
+     * Null means random assignment.
+     */
+    public Integer getFixedSheriffPlayer() {
+        return fixedSheriffPlayer;
     }
 
     /**

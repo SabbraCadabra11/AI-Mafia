@@ -1,6 +1,7 @@
 package com.aimafia.ai;
 
 import com.aimafia.config.GameConfig;
+import com.aimafia.model.GameState;
 import com.aimafia.model.Player;
 import com.aimafia.util.TokenTracker;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,11 +59,12 @@ public class OpenRouterService {
      * Uses the player's assigned model.
      *
      * @param player     The player making the query
+     * @param state      The current game state
      * @param userPrompt The user prompt with game context
      * @return The LLM response
      */
-    public LLMResponse query(Player player, String userPrompt) {
-        String systemPrompt = promptBuilder.buildSystemPrompt(player);
+    public LLMResponse query(Player player, GameState state, String userPrompt) {
+        String systemPrompt = promptBuilder.buildSystemPrompt(player, state);
         String modelId = player.getModelId();
         return queryWithRetry(player.getId(), modelId, systemPrompt, userPrompt, config.getMaxRetries());
     }
@@ -128,13 +130,40 @@ public class OpenRouterService {
 
     private String buildRequestBody(String modelId, String systemPrompt, String userPrompt)
             throws JsonProcessingException {
+        // Build the JSON schema for structured output
+        Map<String, Object> responseSchema = Map.of(
+                "type", "object",
+                "properties", Map.of(
+                        "thought", Map.of(
+                                "type", "string",
+                                "description",
+                                "Internal reasoning (not visible to other players). You must keep it sharp and concise."),
+                        "message", Map.of(
+                                "type", "string",
+                                "description", "Public statement (for discussion/defense phases, empty otherwise)."),
+                        "action", Map.of(
+                                "type", "string",
+                                "description", "Action: TARGET_ID, SKIP, GUILTY, or INNOCENT")),
+                "required", List.of("thought", "message", "action"),
+                "additionalProperties", false);
+
+        Map<String, Object> jsonSchema = Map.of(
+                "name", "llm_response",
+                "strict", true,
+                "schema", responseSchema);
+
+        Map<String, Object> responseFormat = Map.of(
+                "type", "json_schema",
+                "json_schema", jsonSchema);
+
         Map<String, Object> requestMap = Map.of(
                 "model", modelId,
                 "messages", List.of(
                         Map.of("role", "system", "content", systemPrompt),
                         Map.of("role", "user", "content", userPrompt)),
-                "temperature", 0.7,
-                "max_tokens", 500);
+                "temperature", 1,
+                "max_tokens", config.getMaxTokens(),
+                "response_format", responseFormat);
         return objectMapper.writeValueAsString(requestMap);
     }
 

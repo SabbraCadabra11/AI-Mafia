@@ -6,20 +6,20 @@ import com.aimafia.model.Player;
  * Holds the result of night phase resolution.
  */
 public record NightResult(
-    String mafiaTarget,         // ID of player targeted by Mafia
-    String doctorTarget,        // ID of player protected by Doctor
-    String sheriffTarget,       // ID of player investigated by Sheriff
-    String sheriffResult,       // "MAFIA" or "TOWN" - result of investigation
-    boolean killPrevented,      // True if Doctor saved the target
-    Player victim               // The player who died, or null if no one died
+        String mafiaTarget, // ID of player targeted by Mafia
+        String doctorTarget, // ID of player protected by Doctor
+        String sheriffTarget, // ID of player investigated by Sheriff
+        String sheriffResult, // "MAFIA" or "TOWN" - result of investigation
+        boolean killPrevented, // True if Doctor saved the target
+        Player victim // The player who died, or null if no one died
 ) {
     /**
      * Creates a NightResult where someone died.
      */
     public static NightResult withDeath(String mafiaTarget, String doctorTarget,
-                                         String sheriffTarget, String sheriffResult,
-                                         Player victim) {
-        return new NightResult(mafiaTarget, doctorTarget, sheriffTarget, 
+            String sheriffTarget, String sheriffResult,
+            Player victim) {
+        return new NightResult(mafiaTarget, doctorTarget, sheriffTarget,
                 sheriffResult, false, victim);
     }
 
@@ -27,8 +27,8 @@ public record NightResult(
      * Creates a NightResult where the Doctor saved the target.
      */
     public static NightResult withSave(String mafiaTarget, String doctorTarget,
-                                        String sheriffTarget, String sheriffResult) {
-        return new NightResult(mafiaTarget, doctorTarget, sheriffTarget, 
+            String sheriffTarget, String sheriffResult) {
+        return new NightResult(mafiaTarget, doctorTarget, sheriffTarget,
                 sheriffResult, true, null);
     }
 
@@ -55,7 +55,7 @@ public record NightResult(
      */
     public String getSummary() {
         StringBuilder sb = new StringBuilder();
-        
+
         if (hasDeath()) {
             sb.append(victim.getId()).append(" was killed during the night.");
         } else if (killPrevented) {
@@ -65,7 +65,7 @@ public record NightResult(
         } else {
             sb.append("No one died during the night.");
         }
-        
+
         return sb.toString();
     }
 

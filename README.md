@@ -4,7 +4,7 @@ A Java 21 console application where 10 autonomous AI agents play the social dedu
 
 ## 🎭 Overview
 
-This project implements a fully automated Mafia game where AI agents (Large Language Models) take on roles like Mafia, Sheriff, Doctor, and Villagers. The game runs autonomously with no human intervention, featuring:
+The concept has been shamelessly stolen from Turing Games channel on YouTube (https://www.youtube.com/@turing_games, https://youtu.be/JhBtg-lyKdo). This project implements a fully automated Mafia game where AI agents (Large Language Models) take on roles like Mafia, Sheriff, Doctor, and Villagers. The game runs autonomously with no human intervention, featuring:
 
 - **10 AI players** with distinct roles and goals
 - **Night phase** with Mafia consensus, Sheriff investigations, and Doctor protection
@@ -12,7 +12,7 @@ This project implements a fully automated Mafia game where AI agents (Large Lang
 - **Voting/Trial phase** with nominations, defense speeches, and judgment
 - **Complete game logging** for post-game analysis
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -49,7 +49,7 @@ mvn exec:java
 java -jar target/ai-mafia-1.0.0-SNAPSHOT.jar
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Edit `src/main/resources/application.properties` to customize:
 
@@ -58,43 +58,50 @@ Edit `src/main/resources/application.properties` to customize:
 openrouter.api.key=${OPENROUTER_API_KEY}
 
 # Per-Player Models - Each player uses a different LLM!
-game.player.1.model=openai/gpt-4o
-game.player.2.model=anthropic/claude-3.5-sonnet
-game.player.3.model=google/gemini-2.0-flash-exp
-game.player.4.model=meta-llama/llama-3.3-70b-instruct
-game.player.5.model=mistralai/mistral-large-2411
-game.player.6.model=openai/gpt-4o-mini
-game.player.7.model=anthropic/claude-3-haiku
-game.player.8.model=google/gemini-pro
-game.player.9.model=qwen/qwen-2.5-72b-instruct
-game.player.10.model=deepseek/deepseek-chat
+game.player.1.model=google/gemini-3-flash-preview
+game.player.2.model=google/gemini-3-pro-preview
+game.player.3.model=openai/gpt-5.2
+game.player.4.model=openai/gpt-4o-2024-11-20
+game.player.5.model=x-ai/grok-4.1-fast
+game.player.6.model=anthropic/claude-sonnet-4.5
+game.player.7.model=mistralai/mistral-medium-3.1
+game.player.8.model=qwen/qwen3-max
+game.player.9.model=deepseek/deepseek-v3.2
+game.player.10.model=moonshotai/kimi-k2-thinking
+game.player.11.model=minimax/minimax-m2.1
+game.player.12.model=z-ai/glm-4.7
 
 # Game Settings
-game.player.count=10
-game.mafia.count=3
+game.player.count=12
+game.mafia.count=4
 game.max.discussion.rounds=2
 game.reveal.roles.on.death=true
+
+# Player Roles
+game.mafia.players=3,4,5,6
+game.doctor.player=1
+game.sheriff.player=2
 ```
 
 ### Multi-Model Gameplay
 
-The game supports **10 different LLMs competing against each other**! Each player is powered by a different AI model, allowing you to observe:
+The game supports **different LLMs competing against each other**! Each player is powered by a different AI model, allowing you to observe:
 - Which models are better at deception (Mafia)
 - Which models excel at investigation (Sheriff)
 - How different models handle social deduction and consensus-building
 
 Any model available on OpenRouter can be used.
 
-## 🎲 Game Rules
+## Game Rules
 
 ### Roles
 
 | Role | Team | Night Action |
 |------|------|--------------|
-| **Mafia** (3) | Mafia | Kill one Town member (requires consensus) |
-| **Sheriff** (1) | Town | Investigate one player (learn if Mafia or Town) |
-| **Doctor** (1) | Town | Protect one player from death |
-| **Villager** (5) | Town | No night action |
+| **Mafia** | Mafia | Kill one Town member (requires consensus) |
+| **Sheriff** | Town | Investigate one player (learn if Mafia or Town) |
+| **Doctor** | Town | Protect one player from death |
+| **Villager** | Town | No night action |
 
 ### Win Conditions
 
@@ -119,14 +126,14 @@ Any model available on OpenRouter can be used.
    - Stage B: Accused makes defense speech
    - Stage C: Final judgment (GUILTY/INNOCENT)
 
-## 📊 Output
+## Output
 
 The game produces:
 - **Console output**: Real-time game events
-- **Game log file**: `logs/mafia-game-{timestamp}.log`
+- **Game log file**: `logs/mafia-game-{timestamp}.log`. Models use player IDs (e.g. "Player_1" or abbreviations like "P1") thus after the game use find-and-replace tool to replace player IDs with model names.
 - **Token usage report**: Cost estimation at game end
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -136,7 +143,7 @@ mvn test
 mvn test jacoco:report
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/main/java/com/aimafia/
@@ -167,13 +174,6 @@ src/main/java/com/aimafia/
     └── GameLogger.java         # Game event logging
 ```
 
-## 🔧 Technical Details
-
-- **Java 21** with Virtual Threads for concurrent I/O
-- **Jackson** for JSON serialization
-- **SLF4J + Logback** for logging
-- **JUnit 5** for testing
-
 ### Virtual Threads Usage
 
 The game uses Java 21 Virtual Threads for:
@@ -182,11 +182,3 @@ The game uses Java 21 Virtual Threads for:
 - Parallel final judgment voting
 
 This allows efficient handling of multiple concurrent API calls without blocking OS threads.
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.

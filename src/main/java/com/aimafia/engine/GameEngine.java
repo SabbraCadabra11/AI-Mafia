@@ -14,7 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Main game controller that orchestrates the Mafia game flow.
@@ -118,18 +122,21 @@ public class GameEngine {
 
     /**
      * Initializes players with their roles and models.
-     * Role distribution: 3 Mafia, 1 Sheriff, 1 Doctor, remaining Villagers
+     * Role distribution: configurable Mafia, 1 Sheriff, 1 Doctor, remaining
+     * Villagers
      * Each player uses a different LLM model from configuration.
+     * Supports fixed role assignments via game.mafia.players, game.doctor.player,
+     * game.sheriff.player
      */
     private void initializePlayers() {
         logger.info("Initializing {} players with roles and models", config.getPlayerCount());
 
-        List<Role> roles = createRolePool();
-        Collections.shuffle(roles);
+        // Create role assignments map (player number -> role)
+        Map<Integer, Role> roleAssignments = createRoleAssignments();
 
         for (int i = 1; i <= config.getPlayerCount(); i++) {
             String playerId = "Player_" + i;
-            Role role = roles.get(i - 1);
+            Role role = roleAssignments.get(i);
             String modelId = config.getModelForPlayer(i);
 
             Player player = new Player(playerId, role, modelId);
@@ -146,27 +153,90 @@ public class GameEngine {
     }
 
     /**
-     * Creates the pool of roles based on configuration.
+     * Creates role assignments for all players.
+     * Respects fixed assignments from config, fills remaining randomly.
      */
-    private List<Role> createRolePool() {
-        List<Role> roles = new ArrayList<>();
+    private Map<Integer, Role> createRoleAssignments() {
+        Map<Integer, Role> assignments = new HashMap<>();
+        Set<Integer> assignedPlayers = new HashSet<>();
 
-        // Add Mafia roles
-        for (int i = 0; i < config.getMafiaCount(); i++) {
-            roles.add(Role.MAFIA);
+        // First, handle fixed assignments
+        List<Integer> fixedMafia = config.getFixedMafiaPlayers();
+        Integer fixedDoctor = config.getFixedDoctorPlayer();
+        Integer fixedSheriff = config.getFixedSheriffPlayer();
+
+        // Assign fixed Mafia players
+        for (Integer playerNum : fixedMafia) {
+            if (playerNum >= 1 && playerNum <= config.getPlayerCount()) {
+                assignments.put(playerNum, Role.MAFIA);
+                assignedPlayers.add(playerNum);
+                logger.debug("Fixed assignment: Player {} -> MAFIA", playerNum);
+            }
         }
 
-        // Add special town roles
-        roles.add(Role.SHERIFF);
-        roles.add(Role.DOCTOR);
+        // Assign fixed Doctor
+        if (fixedDoctor != null && fixedDoctor >= 1 && fixedDoctor <= config.getPlayerCount()
+                && !assignedPlayers.contains(fixedDoctor)) {
+            assignments.put(fixedDoctor, Role.DOCTOR);
+            assignedPlayers.add(fixedDoctor);
+            logger.debug("Fixed assignment: Player {} -> DOCTOR", fixedDoctor);
+        }
+
+        // Assign fixed Sheriff
+        if (fixedSheriff != null && fixedSheriff >= 1 && fixedSheriff <= config.getPlayerCount()
+                && !assignedPlayers.contains(fixedSheriff)) {
+            assignments.put(fixedSheriff, Role.SHERIFF);
+            assignedPlayers.add(fixedSheriff);
+            logger.debug("Fixed assignment: Player {} -> SHERIFF", fixedSheriff);
+        }
+
+        // Create pool of remaining roles
+        List<Role> remainingRoles = new ArrayList<>();
+
+        // Add remaining Mafia roles if needed
+        int remainingMafiaCount = config.getMafiaCount() - (int) assignments.values().stream()
+                .filter(r -> r == Role.MAFIA).count();
+        for (int i = 0; i < remainingMafiaCount; i++) {
+            remainingRoles.add(Role.MAFIA);
+        }
+
+        // Add Sheriff if not already assigned
+        if (fixedSheriff == null || !assignedPlayers.contains(fixedSheriff)
+                || assignments.get(fixedSheriff) != Role.SHERIFF) {
+            boolean sheriffAssigned = assignments.values().stream().anyMatch(r -> r == Role.SHERIFF);
+            if (!sheriffAssigned) {
+                remainingRoles.add(Role.SHERIFF);
+            }
+        }
+
+        // Add Doctor if not already assigned
+        if (fixedDoctor == null || !assignedPlayers.contains(fixedDoctor)
+                || assignments.get(fixedDoctor) != Role.DOCTOR) {
+            boolean doctorAssigned = assignments.values().stream().anyMatch(r -> r == Role.DOCTOR);
+            if (!doctorAssigned) {
+                remainingRoles.add(Role.DOCTOR);
+            }
+        }
 
         // Fill remaining with Villagers
-        int villagerCount = config.getPlayerCount() - config.getMafiaCount() - 2;
+        int unassignedCount = config.getPlayerCount() - assignedPlayers.size();
+        int villagerCount = unassignedCount - remainingRoles.size();
         for (int i = 0; i < villagerCount; i++) {
-            roles.add(Role.VILLAGER);
+            remainingRoles.add(Role.VILLAGER);
         }
 
-        return roles;
+        // Shuffle remaining roles
+        Collections.shuffle(remainingRoles);
+
+        // Assign remaining roles to unassigned players
+        int roleIndex = 0;
+        for (int i = 1; i <= config.getPlayerCount(); i++) {
+            if (!assignedPlayers.contains(i)) {
+                assignments.put(i, remainingRoles.get(roleIndex++));
+            }
+        }
+
+        return assignments;
     }
 
     /**

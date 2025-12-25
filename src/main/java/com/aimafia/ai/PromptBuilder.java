@@ -15,9 +15,9 @@ public class PromptBuilder {
 
     private static final String JSON_FORMAT_INSTRUCTION = """
 
-            You MUST respond with a valid JSON object in this exact format:
+            You MUST ALWAYS respond with a valid JSON object in this exact format:
             {
-              "thought": "Your internal reasoning (not visible to other players)",
+              "thought": "Your internal reasoning (not visible to other players). You must keep it sharp and concise.",
               "message": "Your public statement (at most 5 sentences, only for discussion/defense phases, empty string otherwise)",
               "action": "Your action (TARGET_ID or SKIP or GUILTY or INNOCENT depending on context)"
             }
@@ -29,13 +29,21 @@ public class PromptBuilder {
      * Builds the system prompt for a player based on their role.
      *
      * @param player The player to build the prompt for
+     * @param state  The current game state (for Mafia teammate info)
      * @return The system prompt
      */
-    public String buildSystemPrompt(Player player) {
+    public String buildSystemPrompt(Player player, GameState state) {
         Role role = player.getRole();
         StringBuilder sb = new StringBuilder();
 
-        sb.append("You are playing the social deduction game 'Mafia'. ");
+        sb.append("""
+                You are playing the social deduction game 'Mafia'. \
+                The available roles are: MAFIA, VILLAGER, DOCTOR, SHERIFF. \
+                Important note about the format of the day-time discussion: \
+                it is a random double round robin. \
+                For this reason don't form your opinions based on how active other players are. \
+                Also, for the same reason, don't expect immediate response from a player you directly addressed.\
+                """);
         sb.append("Your player ID is: ").append(player.getId()).append("\n\n");
 
         sb.append("YOUR ROLE: ").append(role.getDisplayName()).append("\n");
@@ -49,11 +57,19 @@ public class PromptBuilder {
                         As Mafia, you must:
                         - Coordinate with other Mafia members at night to kill a Town member
                         - Blend in during day discussions, deflecting suspicion from yourself
-                        - Protect fellow Mafia members
+                        - Protect fellow Mafia members. Remember, this is a team game!
                         - Vote to eliminate Town members, especially those close to discovering Mafia
-
-                        You will know who the other Mafia members are.
                         """);
+                // Add teammate info
+                List<String> teammates = state.getAliveMafia().stream()
+                        .filter(m -> !m.getId().equals(player.getId()))
+                        .map(Player::getId)
+                        .toList();
+                if (!teammates.isEmpty()) {
+                    sb.append("\nYour fellow Mafia members are: ");
+                    sb.append(String.join(", ", teammates));
+                    sb.append(". Protect them and work together!\n");
+                }
             }
             case SHERIFF -> {
                 sb.append("""

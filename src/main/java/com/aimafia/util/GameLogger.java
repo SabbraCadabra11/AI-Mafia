@@ -14,16 +14,16 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Specialized logger for game events.
- * Separates public events (visible to players) from private thoughts (for analysis).
+ * Separates public events (visible to players) from private thoughts (for
+ * analysis).
  */
 public class GameLogger {
     private static final Logger publicLogger = LoggerFactory.getLogger("com.aimafia.game.public");
     private static final Logger privateLogger = LoggerFactory.getLogger("com.aimafia.game.private");
     private static final Logger gameLogger = LoggerFactory.getLogger("com.aimafia.game");
-    
-    private static final DateTimeFormatter TIMESTAMP_FORMAT = 
-            DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    
+
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
     private final Path logDirectory;
     private final Path gameLogFile;
     private final LocalDateTime gameStartTime;
@@ -36,7 +36,7 @@ public class GameLogger {
         this.logDirectory = Path.of("logs");
         this.gameLogFile = logDirectory.resolve(
                 "mafia-game-" + TIMESTAMP_FORMAT.format(gameStartTime) + ".log");
-        
+
         initializeLogDirectory();
     }
 
@@ -50,7 +50,7 @@ public class GameLogger {
         this.logDirectory = logDir;
         this.gameLogFile = logDirectory.resolve(
                 "mafia-game-" + TIMESTAMP_FORMAT.format(gameStartTime) + ".log");
-        
+
         initializeLogDirectory();
     }
 
@@ -82,7 +82,7 @@ public class GameLogger {
      * @param event The event description
      */
     public void logPublicEvent(GameState state, String event) {
-        String formatted = String.format("[Day %d - %s] %s", 
+        String formatted = String.format("[Day %d - %s] %s",
                 state.getDayNumber(), state.getCurrentPhase().getDisplayName(), event);
         publicLogger.info(formatted);
         writeToFile("[PUBLIC] " + formatted);
@@ -142,9 +142,9 @@ public class GameLogger {
     /**
      * Logs a death event.
      *
-     * @param player      The dead player
-     * @param cause       The cause of death
-     * @param revealRole  Whether to reveal the role
+     * @param player     The dead player
+     * @param cause      The cause of death
+     * @param revealRole Whether to reveal the role
      */
     public void logDeath(Player player, String cause, boolean revealRole) {
         String message;
@@ -161,8 +161,8 @@ public class GameLogger {
     /**
      * Logs the game result.
      *
-     * @param winner  The winning team ("MAFIA" or "TOWN")
-     * @param state   The final game state
+     * @param winner The winning team ("MAFIA" or "TOWN")
+     * @param state  The final game state
      */
     public void logGameEnd(String winner, GameState state) {
         StringBuilder sb = new StringBuilder();
@@ -171,14 +171,14 @@ public class GameLogger {
         sb.append("========================================\n");
         sb.append("Winner: ").append(winner).append("\n");
         sb.append("Days played: ").append(state.getDayNumber()).append("\n\n");
-        
+
         sb.append("Final player states:\n");
         for (Player p : state.getPlayers()) {
             sb.append(String.format("  %s - %s (%s)\n",
                     p.getId(), p.getRole().getDisplayName(), p.getStatus()));
         }
         sb.append("========================================\n");
-        
+
         gameLogger.info(sb.toString());
         writeToFile(sb.toString());
     }

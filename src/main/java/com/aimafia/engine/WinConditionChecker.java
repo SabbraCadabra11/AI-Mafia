@@ -80,7 +80,7 @@ public class WinConditionChecker {
         sb.append(String.format("Alive: %d players\n", totalAlive));
         sb.append(String.format("  - Mafia: %d\n", mafiaAlive));
         sb.append(String.format("  - Town: %d\n", townAlive));
-        
+
         // Danger level assessment
         if (mafiaAlive == townAlive - 1) {
             sb.append("\n⚠️ CRITICAL: Town is one mistake from losing!\n");

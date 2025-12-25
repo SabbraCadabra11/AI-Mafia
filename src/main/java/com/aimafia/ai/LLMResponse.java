@@ -9,14 +9,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record LLMResponse(
-    @JsonProperty("thought")
-    String thought,     // Internal reasoning (logged but not publicly visible)
-    
-    @JsonProperty("message")
-    String message,     // Public statement (only in discussion/defense phases)
-    
-    @JsonProperty("action")
-    String action       // TARGET_ID, SKIP, GUILTY, or INNOCENT
+        @JsonProperty("thought") String thought, // Internal reasoning (logged but not publicly visible)
+
+        @JsonProperty("message") String message, // Public statement (only in discussion/defense phases)
+
+        @JsonProperty("action") String action // TARGET_ID, SKIP, GUILTY, or INNOCENT
 ) {
     /**
      * Creates an empty response (used for fallback scenarios).
@@ -99,7 +96,7 @@ public record LLMResponse(
 
     @Override
     public String toString() {
-        return String.format("LLMResponse{action='%s', hasMessage=%s}", 
+        return String.format("LLMResponse{action='%s', hasMessage=%s}",
                 action, hasMessage());
     }
 }

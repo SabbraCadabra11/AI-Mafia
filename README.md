@@ -1,8 +1,8 @@
 # AI Mafia Game Engine
 
-A Java 21 console application where 10 autonomous AI agents play the social deduction game "Mafia" through the OpenRouter API.
+A Java 21 console application where autonomous AI agents play the social deduction game "Mafia" through the OpenRouter API.
 
-## 🎭 Overview
+## Overview
 
 The concept has been shamelessly stolen from Turing Games channel on YouTube (https://www.youtube.com/@turing_games, https://youtu.be/JhBtg-lyKdo). This project implements a fully automated Mafia game where AI agents (Large Language Models) take on roles like Mafia, Sheriff, Doctor, and Villagers. The game runs autonomously with no human intervention, featuring:
 
